@@ -1,0 +1,15 @@
+name: privacy-check
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 扫描已跟踪文件中的个人信息
+        shell: pwsh
+        run: ./tools/privacy_scan.ps1 -All
