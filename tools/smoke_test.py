@@ -48,8 +48,8 @@ def main():
 
     step("tabs", """(()=>{const out=[];document.querySelectorAll('.tab').forEach(t=>{t.click();out.push(t.dataset.view)});switchView('test');return out.join(',')})()""")
     step("nodes-render", "(()=>{switchView('nodes');return document.querySelectorAll('#nodeList .node-row').length})()")
-    step("nodes-filter", """(()=>{document.getElementById('provinceFilter').value='四川';renderNodes();const n=document.querySelectorAll('#nodeList .node-row').length;document.getElementById('provinceFilter').value='';renderNodes();return n})()""")
-    step("probe-one", """(async()=>{const n=state.nodes.find(x=>x.pname==='四川')||state.nodes[0];const st=await invoke('probe_node',{host:n.hostip,port:parseInt(n.port)});return JSON.stringify({node:n.hostname,rtt:st.avg})})()""")
+    step("nodes-filter", """(()=>{const p=state.nodes[0].pname;document.getElementById('provinceFilter').value=p;renderNodes();const n=document.querySelectorAll('#nodeList .node-row').length;document.getElementById('provinceFilter').value='';renderNodes();return n})()""")
+    step("probe-one", """(async()=>{const n=state.nodes[0];const st=await invoke('probe_node',{host:n.hostip,port:parseInt(n.port)});return JSON.stringify({node:n.hostname,rtt:st.avg})})()""")
     step("history-list", """(async()=>{const h=await invoke('history_list');state.history=h;renderHistory();return h.length})()""")
     step("history-export", """(async()=>{const p=await invoke('history_export');return p})()""")
     step("diag-ping", """(async()=>{const st=await invoke('diag_ping',{host:'223.5.5.5',port:443,count:4});return JSON.stringify(st)})()""")
