@@ -31,18 +31,25 @@ $allowFiles = @(
   'tools/privacy_scan.ps1'
 )
 
-$files = if ($All) {
+$raw = if ($All) {
   git ls-files
 } else {
   git diff --cached --name-only --diff-filter=ACM
 }
 
-$files = $files | Where-Object { $_ -and ($allowFiles -notcontains $_) -and (Test-Path $_) }
+$files = @(
+  $raw |
+    ForEach-Object { ("$_" -replace "`r", "").Trim() } |
+    Where-Object { $_ -and ($allowFiles -notcontains $_) -and (Test-Path -LiteralPath $_ -PathType Leaf) } |
+    Select-Object -Unique
+)
 $hits = @()
 
 foreach ($f in $files) {
+  $item = Get-Item -LiteralPath $f -ErrorAction SilentlyContinue
+  if (-not $item) { continue }
   # 二进制/大文件跳过
-  if ((Get-Item $f).Length -gt 2MB) { continue }
+  if ($item.Length -gt 2MB) { continue }
   if ($f -match '\.(png|ico|icns|jpg|dmg|exe|zip|apk|woff2?)$') { continue }
 
   $lines = Get-Content -LiteralPath $f -Encoding utf8 -ErrorAction SilentlyContinue
