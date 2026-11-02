@@ -1,0 +1,44 @@
+name: build-macos
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  dmg:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri
+
+      - name: Install frontend bundling CLI
+        working-directory: app
+        run: pnpm install
+
+      - name: Build universal .dmg
+        working-directory: app
+        run: pnpm tauri build --target universal-apple-darwin --bundles dmg
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GlobalSpeedTest-dmg
+          path: app/src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+          if-no-files-found: error

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>全球网测 · 桌面版</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo"><canvas id="logoCanvas" width="40" height="40"></canvas></div>
+      <div class="brand-text">
+        <h1>全球网测</h1>
+        <span class="sub">CAICT · 桌面版</span>
+      </div>
+    </div>
+
+    <nav class="tabs">
+      <button class="tab active" data-view="test">网络测速</button>
+      <button class="tab" data-view="nodes">测速节点</button>
+      <button class="tab" data-view="history">历史记录</button>
+      <button class="tab" data-view="diag">网络诊断</button>
+      <button class="tab" data-view="settings">设置</button>
+    </nav>
+
+    <div class="server-chip" id="serverChip" title="点击更换测速节点">
+      <span class="dot"></span>
+      <span id="serverName">未选择节点</span>
+    </div>
+  </header>
+
+  <!-- ============ 测速 ============ -->
+  <section class="view active" id="view-test">
+    <div class="test-grid">
+      <div class="panel gauge-panel">
+        <div class="metrics">
+          <div class="metric">
+            <span class="k">Ping 时延</span>
+            <span class="v" id="mPing">--<i>ms</i></span>
+          </div>
+          <div class="metric">
+            <span class="k">下行速率</span>
+            <span class="v accent" id="mDown">--<i>Mbps</i></span>
+          </div>
+          <div class="metric">
+            <span class="k">上行速率</span>
+            <span class="v accent2" id="mUp">--<i>Mbps</i></span>
+          </div>
+        </div>
+
+        <div class="gauge-wrap"><canvas id="gauge"></canvas></div>
+
+        <button id="btnStart" class="btn-primary">开始测试</button>
+        <div class="phase" id="phaseText">点击开始，将自动匹配最优节点</div>
+        <div class="gauge-mask" id="gaugeMask">
+          <div class="gauge-mask-inner">
+            <div class="t">正在查看历史纪录</div>
+            <div class="d" id="histStamp">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel chart-panel">
+        <div class="chart-box">
+          <div class="chart-head"><span>下行速率</span><span class="val" id="liveDown">0.00 Mbps</span></div>
+          <div class="chart-body"><canvas id="chartDown"></canvas></div>
+        </div>
+        <div class="chart-box">
+          <div class="chart-head"><span>上行速率</span><span class="val accent2" id="liveUp">0.00 Mbps</span></div>
+          <div class="chart-body"><canvas id="chartUp"></canvas></div>
+        </div>
+        <div class="result-grid" id="resultGrid">
+          <div><span>峰值下行</span><b id="rMaxDown">--</b></div>
+          <div><span>平均下行</span><b id="rAvgDown">--</b></div>
+          <div><span>峰值上行</span><b id="rMaxUp">--</b></div>
+          <div><span>平均上行</span><b id="rAvgUp">--</b></div>
+          <div><span>抖动</span><b id="rJitter">--</b></div>
+          <div><span>丢包</span><b id="rLoss">--</b></div>
+          <div><span>评分</span><b id="rScore">--</b></div>
+          <div><span>会话</span><b id="rUuid" class="mono">--</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="statusbar">
+      <div><span class="k">公网 IP</span><span id="localIp">--</span></div>
+      <div><span class="k">归属</span><span id="ipGeo">--</span></div>
+      <div><span class="k">节点</span><span id="nodeInfo">--</span></div>
+      <div><span class="k">节点库</span><span id="nodeCount">--</span></div>
+      <div><span class="k">状态</span><span id="statusText">就绪</span></div>
+      <div><span class="k">下次自动</span><span id="autoNext">—</span></div>
+      <div style="margin-left:auto"><button id="btnSaveImg" class="btn-ghost" style="padding:5px 12px">保存结果图</button></div>
+    </div>
+  </section>
+
+  <!-- ============ 节点 ============ -->
+  <section class="view" id="view-nodes">
+    <div class="nodes-toolbar">
+      <input id="nodeSearch" placeholder="搜索城市 / 运营商 / IP" />
+      <select id="provinceFilter"><option value="">全部省份</option></select>
+      <select id="operFilter">
+        <option value="">全部运营商</option>
+        <option>电信</option><option>联通</option><option>移动</option><option>教育网</option><option>广电网</option>
+      </select>
+      <button id="btnRefreshNodes" class="btn-ghost">刷新节点表</button>
+      <button id="btnProbeAll" class="btn-ghost">批量测延迟</button>
+      <button id="btnProbeStop" class="btn-danger" style="display:none">停止测延迟</button>
+      <select id="latSort">
+        <option value="default">默认排序</option>
+        <option value="asc">延迟 低 → 高</option>
+        <option value="desc">延迟 高 → 低</option>
+      </select>
+      <span class="hint" id="nodesHint">共 0 个节点</span>
+    </div>
+    <div class="node-list" id="nodeList"></div>
+  </section>
+
+  <!-- ============ 历史 ============ -->
+  <section class="view" id="view-history">
+    <div class="nodes-toolbar">
+      <button id="btnExport" class="btn-ghost">导出 CSV</button>
+      <button id="btnOpenDir" class="btn-ghost">打开数据目录</button>
+      <button id="btnClearHist" class="btn-danger">清空历史</button>
+      <span class="hint" id="histHint">共 0 条记录</span>
+    </div>
+    <div class="hist-list" id="histList"></div>
+  </section>
+
+  <!-- ============ 诊断 ============ -->
+  <section class="view" id="view-diag">
+    <div class="diag-grid">
+      <div class="panel">
+        <h3>Ping（TCP 握手 / 往返时延）</h3>
+        <div class="row">
+          <input id="pingHost" placeholder="主机或 IP" value="" />
+          <input id="pingPort" placeholder="端口" value="80" style="max-width:100px" />
+          <input id="pingCount" placeholder="次数" value="10" style="max-width:80px" />
+          <button class="btn-ghost" id="btnPing">开始</button>
+        </div>
+        <pre id="pingOut" class="out"></pre>
+      </div>
+      <div class="panel">
+        <h3>DNS 解析</h3>
+        <div class="row">
+          <input id="dnsHost" placeholder="域名" value="www.baidu.com" />
+          <button class="btn-ghost" id="btnDns">解析</button>
+        </div>
+        <pre id="dnsOut" class="out"></pre>
+      </div>
+      <div class="panel wide">
+        <h3>路由追踪</h3>
+        <div class="row">
+          <input id="trHost" placeholder="目标主机" value="www.baidu.com" />
+          <button class="btn-ghost" id="btnTrace">开始追踪</button>
+        </div>
+        <pre id="trOut" class="out tall"></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 设置 ============ -->
+  <section class="view" id="view-settings">
+    <div class="settings-grid">
+      <div class="panel">
+        <h3>测速参数</h3>
+        <label>下行连接数 <input type="number" id="setDown" min="1" max="64" /></label>
+        <label>上行连接数 <input type="number" id="setUp" min="1" max="32" /></label>
+        <label>单向上传/下载时长（秒）<input type="number" id="setDur" min="2" max="60" /></label>
+        <!-- 签约带宽仅作为会话参数上报给服务器，不影响测量结果，故不在界面暴露 -->
+        <input type="hidden" id="setBw" value="200" />
+      </div>
+      <div class="panel">
+        <h3>节点偏好</h3>
+        <label class="check"><input type="checkbox" id="setAuto" /> 自动匹配最优节点</label>
+        <label class="check"><input type="checkbox" id="setAutoTest" /> 定时自动测速</label>
+        <label>自动测速间隔（分钟）<input type="number" id="setAutoMin" min="1" max="1440" /></label>
+        <label>省份
+          <select id="setProvince"><option value="">请选择省份</option></select>
+        </label>
+        <label>城市
+          <select id="setCity"><option value="">请先选择省份</option></select>
+        </label>
+        <label>运营商
+          <select id="setOper">
+            <option>电信</option><option>联通</option><option>移动</option><option>教育网</option><option>广电网</option>
+          </select>
+        </label>
+      </div>
+      <div class="panel">
+        <h3>设备与数据</h3>
+        <div class="kv"><span>设备标识</span><b id="setDeviceId" class="mono">--</b></div>
+        <div class="kv"><span>数据目录</span><b id="setDataDir" class="mono small">--</b></div>
+        <div class="kv"><span>节点库</span><b id="setNodeCount">--</b></div>
+        <p class="tip">数据仅保存在本机，不上传任何测试结果。</p>
+      </div>
+    </div>
+    <div class="settings-actions">
+      <button class="btn-primary" id="btnSaveSettings">保存设置</button>
+      <span id="saveHint" class="hint"></span>
+    </div>
+  </section>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

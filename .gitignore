@@ -1,0 +1,28 @@
+# ---- 构建产物 ----
+app/node_modules/
+app/src-tauri/target/
+app/src-tauri/gen/
+dist/
+
+# ---- 逆向中间产物（体积大，且可本地复现，不入库）----
+work/
+out/
+dl/
+tools/jadx/
+tools/ghidra_12.2_PUBLIC/
+tools/apktool.jar
+
+# ---- 样本与二进制 ----
+*.apk
+*.zip
+*.tar.gz
+*.dmg
+
+# ---- 杂项 ----
+*.log
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
+.idea/
+.vscode/
