@@ -2,6 +2,8 @@
 
 对 Android 应用 **全球网测 v4.4.8**（`com.cnspeedtest.globalspeed`，中国信通院 CAICT）做完整逆向，
 并用 **Tauri 2 + Rust** 重写为跨平台桌面测速工具（无 Electron、无广告、无账号、免费）。
+使用 DeepSeek Harness 逆向、开发。
+<img width="2080" height="1402" alt="39bf6f8cd55a166091916833b66488c8" src="https://github.com/user-attachments/assets/1ebcc13c-1cbc-4418-aaa1-124cd662f067" />
 
 ---
 
